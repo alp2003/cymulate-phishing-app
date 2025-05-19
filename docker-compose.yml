@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+  phishing-simulation:
+    build:
+      context: ./backend/phishing-simulation
+    ports:
+      - '3001:3001'
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo/phishing-simulation
+      - SMTP_HOST=smtp-relay.brevo.com
+      - SMTP_PORT=587
+      - SMTP_USER=alp2003@gmail.com
+      - SMTP_PASS=haz4hwg6zad-GFQ5pkz
+  phishing-management:
+    build:
+      context: ./backend/phishing-management
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mongo
+      - phishing-simulation
+    environment:
+      - MONGO_URI=mongodb://mongo/phishing-management
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - '3002:3000'
+    depends_on:
+      - phishing-management
+
+volumes:
+  mongo_data:
